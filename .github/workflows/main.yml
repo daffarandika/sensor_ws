@@ -29,4 +29,4 @@ jobs:
       - uses: ros-tooling/action-ros-lint@0.1.3
         with:
           linter: ${{ matrix.linter }}
-          package-name: cpp_template_pkg
+          package-name: sensor_reading
