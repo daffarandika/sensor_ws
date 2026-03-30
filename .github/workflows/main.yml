@@ -4,12 +4,31 @@ on:
   push:
     branches:
       - master
+
 jobs:
   build_and_test_ros2:
     runs-on: ubuntu-22.04
     container:
       image: rostooling/setup-ros-docker:ubuntu-jammy-latest
     steps:
+      - uses: actions/checkout@v4
+      - name: Cache rosdep
+        uses: actions/cache@v4
+        with:
+          path: ~/.ros/rosdep
+          key: ${{ runner.os }}-rosdep-${{ hashFiles('**/package.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-rosdep-
+      - name: Cache colcon workspace
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/ros_ws/build
+            ~/ros_ws/install
+          key: ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml', '**/*.cpp', '**/*.hpp', '**/*.h') }}
+          restore-keys: |
+            ${{ runner.os }}-colcon-humble-
+
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
         with:
@@ -25,6 +44,15 @@ jobs:
         linter: [cpplint, uncrustify, xmllint]
     steps:
       - uses: actions/checkout@v4
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-lint-${{ matrix.linter }}-${{ hashFiles('.github/workflows/*.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-lint-${{ matrix.linter }}-
+            ${{ runner.os }}-apt-lint-
+
       - uses: ros-tooling/setup-ros@v0.7
       - uses: ros-tooling/action-ros-lint@v0.1
         with:
