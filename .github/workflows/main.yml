@@ -1,5 +1,4 @@
 name: ROS2 CI Pipeline
-
 on:
   pull_request:
   push:
@@ -9,7 +8,7 @@ jobs:
   build_and_test_ros2:
     runs-on: ubuntu-latest
     container:
-      image: rostooling/setup-ros-docker:ubuntu-noble-latest
+      image: rostooling/setup-ros-docker:ubuntu-jammy-latest
     steps:
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
