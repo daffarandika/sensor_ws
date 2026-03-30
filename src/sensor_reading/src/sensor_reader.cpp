@@ -14,7 +14,7 @@ SensorReader::SensorReader() : Node("sensor_read_pub") {
 }
 
 int SensorReader::read_from_sensor() {
-	return 89;
+	return 88;
 }
 
 void SensorReader::publish() {
