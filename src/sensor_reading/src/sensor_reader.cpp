@@ -8,9 +8,9 @@ SensorReader::SensorReader() : Node("sensor_read_pub") {
 	publisher_ = this->create_publisher<std_msgs::msg::Int32>("sensor", 10);
 
 	timer_ = this->create_wall_timer(
-			500ms,
-			std::bind(&SensorReader::publish, this)
-			);
+		500ms,
+		std::bind(&SensorReader::publish, this)
+		);
 }
 
 int SensorReader::read_from_sensor() {

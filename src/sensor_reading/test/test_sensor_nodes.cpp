@@ -17,27 +17,27 @@ using namespace std::chrono_literals;
 
 class RosTestBase : public ::testing::Test
 {
-	protected:
-		static void SetUpTestSuite()
-		{
-			rclcpp::init(0, nullptr);
-		}
+protected:
+static void SetUpTestSuite()
+{
+	rclcpp::init(0, nullptr);
+}
 
-		static void TearDownTestSuite()
-		{
-			rclcpp::shutdown();
-		}
+static void TearDownTestSuite()
+{
+	rclcpp::shutdown();
+}
 
-		void spin_for(std::chrono::milliseconds duration)
-		{
-			auto start = std::chrono::steady_clock::now();
-			while (std::chrono::steady_clock::now() - start < duration) {
-				executor_->spin_some();
-				std::this_thread::sleep_for(10ms);
-			}
-		}
+void spin_for(std::chrono::milliseconds duration)
+{
+	auto start = std::chrono::steady_clock::now();
+	while (std::chrono::steady_clock::now() - start < duration) {
+		executor_->spin_some();
+		std::this_thread::sleep_for(10ms);
+	}
+}
 
-		std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
 };
 
 
@@ -47,21 +47,21 @@ class RosTestBase : public ::testing::Test
 
 class TestSensorReader : public RosTestBase
 {
-	protected:
-		void SetUp() override
-		{
-			reader_ = std::make_shared<SensorReader>();
-			executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-			executor_->add_node(reader_);
-		}
+protected:
+void SetUp() override
+{
+	reader_ = std::make_shared<SensorReader>();
+	executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+	executor_->add_node(reader_);
+}
 
-		void TearDown() override
-		{
-			executor_->remove_node(reader_);
-			reader_.reset();
-		}
+void TearDown() override
+{
+	executor_->remove_node(reader_);
+	reader_.reset();
+}
 
-		std::shared_ptr<SensorReader> reader_;
+std::shared_ptr<SensorReader> reader_;
 };
 
 // Node metadata
@@ -97,11 +97,11 @@ TEST_F(TestSensorReader, PublishSendsCorrectValue)
 	// Spy subscriber on the same topic
 	auto spy = std::make_shared<rclcpp::Node>("spy_sub");
 	auto sub = spy->create_subscription<std_msgs::msg::Int32>(
-			"sensor", 10,
-			[&received](const std_msgs::msg::Int32::SharedPtr msg) {
-			received.push_back(msg->data);
-			}
-			);
+		"sensor", 10,
+		[&received](const std_msgs::msg::Int32::SharedPtr msg) {
+		received.push_back(msg->data);
+	}
+		);
 	executor_->add_node(spy);
 
 	reader_->publish();
@@ -119,11 +119,11 @@ TEST_F(TestSensorReader, PublishSendsInt32Message)
 
 	auto spy = std::make_shared<rclcpp::Node>("spy_type_sub");
 	auto sub = spy->create_subscription<std_msgs::msg::Int32>(
-			"sensor", 10,
-			[&received](const std_msgs::msg::Int32::SharedPtr msg) {
-			received.push_back(*msg);
-			}
-			);
+		"sensor", 10,
+		[&received](const std_msgs::msg::Int32::SharedPtr msg) {
+		received.push_back(*msg);
+	}
+		);
 	executor_->add_node(spy);
 
 	reader_->publish();
@@ -142,11 +142,11 @@ TEST_F(TestSensorReader, TimerTriggersPublish)
 
 	auto spy = std::make_shared<rclcpp::Node>("spy_timer_sub");
 	auto sub = spy->create_subscription<std_msgs::msg::Int32>(
-			"sensor", 10,
-			[&received](const std_msgs::msg::Int32::SharedPtr msg) {
-			received.push_back(msg->data);
-			}
-			);
+		"sensor", 10,
+		[&received](const std_msgs::msg::Int32::SharedPtr msg) {
+		received.push_back(msg->data);
+	}
+		);
 	executor_->add_node(spy);
 
 	// Timer fires every 500ms — spin for 1.2s, expect at least 2 publishes
@@ -155,7 +155,7 @@ TEST_F(TestSensorReader, TimerTriggersPublish)
 	executor_->remove_node(spy);
 
 	EXPECT_GE(received.size(), 2u)
-		<< "Expected at least 2 timer-triggered publishes in 1.2 seconds";
+	        << "Expected at least 2 timer-triggered publishes in 1.2 seconds";
 }
 
 
@@ -166,58 +166,58 @@ TEST_F(TestSensorReader, TimerTriggersPublish)
 // Extended listener that exposes received data for testing
 class TestableSensorListener : public rclcpp::Node
 {
-	public:
-		std::vector<int32_t> received;
+public:
+std::vector<int32_t> received;
 
-		TestableSensorListener()
-			: Node("sensor_read_sub")
-		{
-			subscriber_ = this->create_subscription<std_msgs::msg::Int32>(
-					"sensor", 10,
-					[this](const std_msgs::msg::Int32::SharedPtr msg) {
-					received.push_back(msg->data);
-					}
-					);
+TestableSensorListener()
+	: Node("sensor_read_sub")
+{
+	subscriber_ = this->create_subscription<std_msgs::msg::Int32>(
+		"sensor", 10,
+		[this](const std_msgs::msg::Int32::SharedPtr msg) {
+			received.push_back(msg->data);
 		}
+		);
+}
 
-	private:
-		rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr subscriber_;
+private:
+rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr subscriber_;
 };
 
 class TestSensorListener : public RosTestBase
 {
-	protected:
-		void SetUp() override
-		{
-			listener_ = std::make_shared<TestableSensorListener>();
-			executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-			executor_->add_node(listener_);
-		}
+protected:
+void SetUp() override
+{
+	listener_ = std::make_shared<TestableSensorListener>();
+	executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+	executor_->add_node(listener_);
+}
 
-		void TearDown() override
-		{
-			executor_->remove_node(listener_);
-			listener_.reset();
-		}
+void TearDown() override
+{
+	executor_->remove_node(listener_);
+	listener_.reset();
+}
 
-		// Helper: publish a value onto "sensor" from a temporary node
-		void publish_value(int32_t value)
-		{
-			auto pub_node = std::make_shared<rclcpp::Node>("test_publisher");
-			auto pub = pub_node->create_publisher<std_msgs::msg::Int32>("sensor", 10);
-			executor_->add_node(pub_node);
+// Helper: publish a value onto "sensor" from a temporary node
+void publish_value(int32_t value)
+{
+	auto pub_node = std::make_shared<rclcpp::Node>("test_publisher");
+	auto pub = pub_node->create_publisher<std_msgs::msg::Int32>("sensor", 10);
+	executor_->add_node(pub_node);
 
-			spin_for(50ms);  // allow discovery
+	spin_for(50ms);                  // allow discovery
 
-			std_msgs::msg::Int32 msg;
-			msg.data = value;
-			pub->publish(msg);
+	std_msgs::msg::Int32 msg;
+	msg.data = value;
+	pub->publish(msg);
 
-			spin_for(300ms);  // allow delivery
-			executor_->remove_node(pub_node);
-		}
+	spin_for(300ms);                  // allow delivery
+	executor_->remove_node(pub_node);
+}
 
-		std::shared_ptr<TestableSensorListener> listener_;
+std::shared_ptr<TestableSensorListener> listener_;
 };
 
 // Node metadata
@@ -285,26 +285,26 @@ TEST_F(TestSensorListener, ReceivesZero)
 
 class TestSensorIntegration : public RosTestBase
 {
-	protected:
-		void SetUp() override
-		{
-			reader_   = std::make_shared<SensorReader>();
-			listener_ = std::make_shared<TestableSensorListener>();
-			executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-			executor_->add_node(reader_);
-			executor_->add_node(listener_);
-		}
+protected:
+void SetUp() override
+{
+	reader_   = std::make_shared<SensorReader>();
+	listener_ = std::make_shared<TestableSensorListener>();
+	executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+	executor_->add_node(reader_);
+	executor_->add_node(listener_);
+}
 
-		void TearDown() override
-		{
-			executor_->remove_node(reader_);
-			executor_->remove_node(listener_);
-			reader_.reset();
-			listener_.reset();
-		}
+void TearDown() override
+{
+	executor_->remove_node(reader_);
+	executor_->remove_node(listener_);
+	reader_.reset();
+	listener_.reset();
+}
 
-		std::shared_ptr<SensorReader>           reader_;
-		std::shared_ptr<TestableSensorListener> listener_;
+std::shared_ptr<SensorReader>           reader_;
+std::shared_ptr<TestableSensorListener> listener_;
 };
 
 TEST_F(TestSensorIntegration, ListenerReceivesFromReader)
@@ -314,7 +314,7 @@ TEST_F(TestSensorIntegration, ListenerReceivesFromReader)
 	spin_for(400ms);
 
 	ASSERT_FALSE(listener_->received.empty())
-		<< "Listener did not receive SensorReader's message";
+	        << "Listener did not receive SensorReader's message";
 	EXPECT_EQ(listener_->received[0], 89);
 }
 
