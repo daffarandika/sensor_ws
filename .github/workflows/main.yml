@@ -25,10 +25,10 @@ jobs:
           path: |
             ~/ros_ws/build
             ~/ros_ws/install
-          key: ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml', '**/*.cpp', '**/*.hpp', '**/*.h') }}
+          key: ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml') }}-${{ hashFiles('**/*.cpp', '**/*.hpp', '**/*.h') || github.sha }}
           restore-keys: |
+            ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml') }}-
             ${{ runner.os }}-colcon-humble-
-
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
         with:
