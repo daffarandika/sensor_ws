@@ -5,49 +5,14 @@ on:
   push:
     branches:
       - master
-
 jobs:
-  lint:
-    name: Lint (ament)
+  build_and_test_ros2:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        linter: [cpplint, uncrustify, xmllint]
-
+    container:
+      image: rostooling/setup-ros-docker:ubuntu-noble-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup ROS2
-        uses: ros-tooling/setup-ros@v0.7
-
-      - name: Run linter
-        uses: ros-tooling/action-ros-lint@v0.1
+      - name: Build and run tests
+        uses: ros-tooling/action-ros-ci@v0.4
         with:
-          linter: ${{ matrix.linter }}
-          package-name: |
-            sensor_reading
-
-  build_and_test:
-    name: Build and Test
-    runs-on: ubuntu-latest
-  
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-    
-      - name: Setup ROS2
-        uses: ros-tooling/setup-ros@v0.7
-        with:
-          required-ros-distributions: humble
-    
-      - name: Update apt
-        run: sudo apt-get update
-    
-      - name: Run ROS2 CI
-        uses: ros-tooling/action-ros-ci@v0.3
-        with:
-          target-ros2-distro: humble
           package-name: sensor_reading
+          target-ros2-distro: humble
