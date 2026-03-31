@@ -12,6 +12,10 @@ on:
       - 'LICENSE'
       - '.gitignore'
 
+env:
+  PACKAGE_NAME: sensor_reading
+  ROS2_DISTRO: humble
+
 jobs:
   build_and_test_ros2:
     runs-on: ubuntu-22.04
@@ -34,15 +38,15 @@ jobs:
           path: |
             ~/ros_ws/build
             ~/ros_ws/install
-          key: ${{ runner.os }}-colcon-humble-${{ github.sha }}
+          key: ${{ runner.os }}-colcon-${{ env.ROS2_DISTRO }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-colcon-humble-
+            ${{ runner.os }}-colcon-${{ env.ROS2_DISTRO }}-
 
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
         with:
-          package-name: sensor_reading
-          target-ros2-distro: humble
+          package-name: ${{ env.PACKAGE_NAME }}
+          target-ros2-distro: ${{ env.ROS2_DISTRO }}
 
   ament_lint:
     name: ament_${{ matrix.linter }}
@@ -61,4 +65,4 @@ jobs:
         uses: ros-tooling/action-ros-lint@v0.1
         with:
           linter: ${{ matrix.linter }}
-          package-name: sensor_reading
+          package-name: ${{ env.PACKAGE_NAME }}
