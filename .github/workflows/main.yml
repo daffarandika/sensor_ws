@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 jobs:
   build_and_test_ros2:
