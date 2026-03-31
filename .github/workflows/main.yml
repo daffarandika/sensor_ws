@@ -2,9 +2,8 @@ name: ITS Robocon ROS2 CI
 
 on:
   pull_request:
-    branches: [master]
-  push:
-    branches: [master]
+    branches:
+      - master
     paths-ignore:
       - '**.md'
       - '**.rst'
