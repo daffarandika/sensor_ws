@@ -1,9 +1,10 @@
 name: ITS Robocon ROS2 CI
+
 on:
   pull_request:
+    branches: [master]
   push:
-    branches:
-      - master
+    branches: [master]
     paths-ignore:
       - '**.md'
       - '**.rst'
@@ -13,6 +14,7 @@ on:
 
 jobs:
   build_and_test_ros2:
+    name: Build & Test (Humble)
     runs-on: ubuntu-22.04
     container:
       image: rostooling/setup-ros-docker:ubuntu-jammy-latest
@@ -23,7 +25,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ros/rosdep
-          key: ${{ runner.os }}-rosdep-${{ github.sha }}
+          key: ${{ runner.os }}-rosdep-${{ hashFiles('**/package.xml') }}-${{ hashFiles('rosdep.keys') }}
           restore-keys: |
             ${{ runner.os }}-rosdep-
 
@@ -33,7 +35,8 @@ jobs:
           path: |
             ~/ros_ws/build
             ~/ros_ws/install
-          key: ${{ runner.os }}-colcon-humble-${{ github.sha }}
+            ~/ros_ws/log
+          key: ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml', '**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-colcon-humble-
 
@@ -42,28 +45,30 @@ jobs:
         with:
           package-name: sensor_reading
           target-ros2-distro: humble
+          import-token: ${{ secrets.GITHUB_TOKEN }}
 
-  ament_lint_cpp:
+      - name: Upload colcon logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: colcon-logs
+          path: ~/ros_ws/log
+
+  ament_lint:
     name: ament_${{ matrix.linter }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        linter: [cpplint, uncrustify, xmllint]
+        linter: [copyright, cpplint, uncrustify, xmllint, cppcheck]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ matrix.linter }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-apt-${{ matrix.linter }}-
-            ${{ runner.os }}-apt-
+      - name: Setup ROS
+        uses: ros-tooling/setup-ros@v0.7
 
-      - uses: ros-tooling/setup-ros@v0.7
-      - uses: ros-tooling/action-ros-lint@v0.1
+      - name: Run ament linter
+        uses: ros-tooling/action-ros-lint@v0.1
         with:
           linter: ${{ matrix.linter }}
           package-name: sensor_reading
