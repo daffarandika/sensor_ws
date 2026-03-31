@@ -22,7 +22,7 @@ on:
       - '.gitignore'
 
 env:
-  PACKAGE_NAME: your_package_name
+  PACKAGE_NAME: sensor_reading
   ROS2_DISTRO: humble
 
 jobs:
