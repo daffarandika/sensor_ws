@@ -1,16 +1,29 @@
-name: ITS Robocon ROS2 CI
+name: ROS2 CI Pipeline
 
 on:
   pull_request:
-    branches: [master]
-  push:
-    branches: [master]
+    branches:
+      - master 
     paths-ignore:
       - '**.md'
       - '**.rst'
       - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
+
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '**.rst'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+
+env:
+  PACKAGE_NAME: your_package_name
+  ROS2_DISTRO: humble
 
 jobs:
   build_and_test_ros2:
@@ -34,17 +47,17 @@ jobs:
           path: |
             ~/ros_ws/build
             ~/ros_ws/install
-          key: ${{ runner.os }}-colcon-humble-${{ github.sha }}
+          key: ${{ runner.os }}-colcon-${{ env.ROS2_DISTRO }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-colcon-humble-
+            ${{ runner.os }}-colcon-${{ env.ROS2_DISTRO }}-
 
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
         with:
-          package-name: sensor_reading
-          target-ros2-distro: humble
+          package-name: ${{ env.PACKAGE_NAME }}
+          target-ros2-distro: ${{ env.ROS2_DISTRO }}
 
-  ament_lint:
+  ament_lint_cpp:
     name: ament_${{ matrix.linter }}
     runs-on: ubuntu-22.04
     strategy:
@@ -54,11 +67,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup ROS
-        uses: ros-tooling/setup-ros@v0.7
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ matrix.linter }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-apt-${{ matrix.linter }}-
+            ${{ runner.os }}-apt-
 
-      - name: Run ament linter
-        uses: ros-tooling/action-ros-lint@v0.1
+      - uses: ros-tooling/setup-ros@v0.7
+      - uses: ros-tooling/action-ros-lint@v0.1
         with:
           linter: ${{ matrix.linter }}
-          package-name: sensor_reading
+          package-name: ${{ env.PACKAGE_NAME }}
