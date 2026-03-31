@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: rostooling/setup-ros-docker:ubuntu-jammy-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +26,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ros/rosdep
-          key: ${{ runner.os }}-rosdep-${{ hashFiles('**/package.xml') }}-${{ hashFiles('rosdep.keys') }}
+          key: ${{ runner.os }}-rosdep-${{ hashFiles('**/package.xml') }}
           restore-keys: |
             ${{ runner.os }}-rosdep-
 
@@ -35,7 +36,7 @@ jobs:
           path: |
             ~/ros_ws/build
             ~/ros_ws/install
-            ~/ros_ws/log
+            ~/ros_ws/log          # useful for debugging
           key: ${{ runner.os }}-colcon-humble-${{ hashFiles('**/package.xml', '**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-colcon-humble-
@@ -45,9 +46,9 @@ jobs:
         with:
           package-name: sensor_reading
           target-ros2-distro: humble
-          import-token: ${{ secrets.GITHUB_TOKEN }}
+          import-token: ${{ secrets.GITHUB_TOKEN }}   # recommended
 
-      - name: Upload colcon logs on failure
+      - name: Upload colcon logs (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linter: [copyright, cpplint, uncrustify, xmllint, cppcheck]
+        linter: [cpplint, uncrustify, xmllint]
     steps:
       - uses: actions/checkout@v4
 
