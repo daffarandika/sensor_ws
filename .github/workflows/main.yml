@@ -53,12 +53,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linter: [cpplint, uncrustify, xmllint]
+        linter: [cppcheck, cpplint, uncrustify, xmllint, flake8]
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup ROS
         uses: ros-tooling/setup-ros@v0.7
+
+      - name: Enable cppcheck (allow slow versions)
+        run: echo "AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS=1" >> $GITHUB_ENV
 
       - name: Run ament linter
         uses: ros-tooling/action-ros-lint@v0.1
