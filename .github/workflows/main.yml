@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linter: [cpplint, uncrustify, xmllint, flake8]
+        linter: [cppcheck, cpplint, uncrustify, xmllint, flake8]
     steps:
       - uses: actions/checkout@v4
 
